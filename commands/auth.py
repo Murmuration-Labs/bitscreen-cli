@@ -24,25 +24,39 @@ def signMessage(msg):
 
     return signedMessage.signature.hex()
 
-def getAccessToken(signature):
-    global provider
+def authenticate(signature):
+    global provider, accessToken
     payload = {'signature': signature}
     response = requests.post(host + '/provider/auth/' + wallet, json=payload)
     provider = response.json()
 
-    return provider['accessToken']
+    accessToken = provider['accessToken']
+
+def getConfigDirectory():
+    userHome = os.path.expanduser('~')
+    return userHome + '/.bitscreen'
+
+def getConfigFile():
+    configDir = getConfigDirectory()
+    return configDir + '/.cli_config'
+
+def getConfigFromFile(configKey):
+    cf = open(getConfigFile())
+    config = json.load(cf)
+    cf.close()
+
+    return config[configKey]
 
 @app.command()
 def login():
     global wallet, privateKey, accessToken
-    userHome = os.path.expanduser('~')
-    configDir = userHome + '/.bitscreen'
+    configDir = getConfigDirectory()
 
     if not os.path.isdir(configDir):
         os.mkdir(configDir)
         typer.secho("Created bitscreen config directory.")
 
-    configFile = configDir + '/.cli_config'
+    configFile = getConfigFile()
     if not os.path.isfile(configFile):
         with open(configFile, 'w') as fp:
             fp.write('{}')
@@ -67,13 +81,14 @@ def login():
     nonce = getNonce()
     signedNonce = signMessage(nonce)
 
-    accessToken = getAccessToken(signedNonce)
+    authenticate(signedNonce)
     typer.secho(f"Authenticated as " + provider['businessName'], fg=typer.colors.GREEN)
 
     saveCredentials = typer.confirm("Do you want to save credentials for future logins?")
 
     toSave = {
-        'access_token': accessToken
+        'access_token': accessToken,
+        'provider_id': provider['id']
     }
 
     if saveCredentials:
@@ -85,9 +100,8 @@ def login():
 
 @app.command()
 def logout():
-    userHome = os.path.expanduser('~')
-    configDir = userHome + '/.bitscreen'
-    configFile = configDir + '/.cli_config'
+    configDir = getConfigDirectory()
+    configFile = getConfigFile()
 
     if not os.path.isdir(configDir) or not os.path.isfile(configFile):
         typer.secho("Not logged in.")
