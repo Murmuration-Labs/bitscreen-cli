@@ -18,6 +18,17 @@ def getFilters(params = {}):
 
     return filters
 
+def getFilterDetails(filterId, params = {}):
+    accessToken = getConfigFromFile('access_token')
+    providerId = getConfigFromFile('provider_id')
+
+    params['providerId'] = providerId;
+
+    response = requests.get(host + '/filter/' + filterId, params=params, headers={'Authorization': 'Bearer ' + accessToken})
+    filters = response.json()
+
+    return filters
+
 def getReadableVisibility(visibilityId):
     return {
         1: 'Private',
@@ -30,7 +41,7 @@ def printFilterLists(filterList):
     rows = [];
     for filter in filterList:
         rows.append([
-            filter['id'],
+            filter['shareId'],
             filter['name'],
             getReadableVisibility(filter['visibility']),
             'Enabled' if filter['enabled'] else 'Disabled',
@@ -42,6 +53,32 @@ def printFilterLists(filterList):
         ])
     print(tabulate(rows, headers, tablefmt="fancy_grid"))
 
+def printCidLists(cidList):
+    headers = ["CID", "Reference URL", "Created", "Updated"]
+    rows = []
+
+    for cid in cidList:
+        rows.append([
+            cid['cid'],
+            cid['refUrl'],
+            cid['created'],
+            cid['updated']
+        ])
+
+    print(tabulate(rows, headers, tablefmt="fancy_grid"))
+
+def printFilterDetails(filter):
+    typer.secho(f"Filter name:  {filter['name']}")
+    typer.secho(f"Description: {filter['description']}")
+    typer.secho(f"ID: {filter['shareId']}")
+    typer.secho(f"Visibility: {getReadableVisibility(filter['visibility'])}")
+    typer.secho(f"Subscribers: {len(filter['provider_Filters'])}")
+    typer.secho(f"Override: {('Yes' if filter['override'] else 'No')}")
+    typer.secho(f"Owner: {filter['provider']['businessName']}")
+    typer.secho(f"CID count: {len(filter['cids'])}")
+
+    printCidLists(filter['cids'])
+
 @app.command()
 def list(search: str = ""):
     params = {};
@@ -52,6 +89,11 @@ def list(search: str = ""):
     print("Found " + str(filters['count']) + " filters:")
 
     printFilterLists(filters['filters'])
+
+@app.command()
+def details(filter: str):
+    filterDetails = getFilterDetails(filter)
+    printFilterDetails(filterDetails)
 
 @app.command()
 def add():
