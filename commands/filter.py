@@ -67,6 +67,10 @@ def printCidLists(cidList):
     print(tabulate(rows, headers, tablefmt="fancy_grid"))
 
 def printFilterDetails(filter):
+    if filter['enabled']:
+        typer.secho("Enabled", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Disabled", bg=typer.colors.RED)
     typer.secho(f"Filter name:  {filter['name']}")
     typer.secho(f"Description: {filter['description']}")
     typer.secho(f"ID: {filter['shareId']}")
@@ -77,6 +81,25 @@ def printFilterDetails(filter):
     typer.secho(f"CID count: {len(filter['cids'])}")
 
     printCidLists(filter['cids'])
+
+def setFilterStatus(filter: str, status: bool):
+    filterDetails = getFilterDetails(filter)
+
+    allowed = False
+    for providerFilter in filterDetails['provider_Filters']:
+        if providerFilter['provider']['id'] == state['providerId']:
+            allowed = True
+            if providerFilter['active'] == status:
+                raise typer.Exit("Status already set.")
+
+    if allowed:
+        params = {'active': status}
+        response = requests.put(f"{host}/provider-filter/{state['providerId']}/{filterDetails['id']}", json=params, headers={'Authorization': 'Bearer ' + state['accessToken']})
+        if response.status_code == 200:
+            typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+        else:
+            typer.secho("Error: ", bg=typer.colors.RED)
+            typer.secho(response.json())
 
 @app.command()
 def list(search: str = ""):
@@ -93,6 +116,14 @@ def list(search: str = ""):
 def details(filter: str):
     filterDetails = getFilterDetails(filter)
     printFilterDetails(filterDetails)
+
+@app.command()
+def enable(filter: str):
+    setFilterStatus(filter, True)
+
+@app.command()
+def disable(filter: str):
+    setFilterStatus(filter, False)
 
 @app.command()
 def add():
