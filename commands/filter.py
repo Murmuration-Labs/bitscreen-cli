@@ -173,9 +173,40 @@ def edit(
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
 
-@app.command()
-def add():
-    print("Not implemented yet.")
+@app.command(name="add-cid")
+def add_cid(filter: str, cid: str, refUrl: str = ""):
+    filter = getFilterDetails(filter)
+    cid = {
+        'cid': cid,
+        'filterId': filter['id'],
+        'refUrl': refUrl
+    }
+
+    response = requests.post(f"{host}/cid", json=cid, auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
+
+@app.command(name="remove-cid")
+def remove_cid(filter: str, cid: str):
+    filter = getFilterDetails(filter)
+    id = None
+    for cidObj in filter['cids']:
+        if cidObj['cid'] == cid:
+            id = cidObj['id']
+            break
+
+    if id is None:
+        raise typer.Exit("CID not found on provided filter.")
+
+    response = requests.delete(f"{host}/cid/{id}", auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
 
 @app.callback()
 def getAuthData():
