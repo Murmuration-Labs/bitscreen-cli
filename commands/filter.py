@@ -3,7 +3,7 @@ import requests
 import typer
 import os
 from tabulate import tabulate
-from .auth import host, getConfigFromFile
+from .auth import host, getConfigFromFile, BearerAuth
 
 app = typer.Typer()
 
@@ -15,7 +15,7 @@ state = {
 def getFilters(params = {}):
     params['providerId'] = state['providerId'];
 
-    response = requests.get(host + '/filter', params=params, headers={'Authorization': 'Bearer ' + state['accessToken']})
+    response = requests.get(host + '/filter', params=params, auth=BearerAuth(state['accessToken']))
     filters = response.json()
 
     return filters
@@ -23,7 +23,7 @@ def getFilters(params = {}):
 def getFilterDetails(filterId, params = {}):
     params['providerId'] = state['providerId'];
 
-    response = requests.get(host + '/filter/' + filterId, params=params, headers={'Authorization': 'Bearer ' + state['accessToken']})
+    response = requests.get(host + '/filter/' + filterId, params=params, auth=BearerAuth(state['accessToken']))
     filters = response.json()
 
     return filters
@@ -94,7 +94,7 @@ def setFilterStatus(filter: str, status: bool):
 
     if allowed:
         params = {'active': status}
-        response = requests.put(f"{host}/provider-filter/{state['providerId']}/{filterDetails['id']}", json=params, headers={'Authorization': 'Bearer ' + state['accessToken']})
+        response = requests.put(f"{host}/provider-filter/{state['providerId']}/{filterDetails['id']}", json=params, auth=BearerAuth(state['accessToken']))
         if response.status_code == 200:
             typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
         else:

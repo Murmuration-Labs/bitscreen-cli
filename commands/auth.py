@@ -13,6 +13,13 @@ privateKey = None
 accessToken = None
 provider = None
 
+class BearerAuth(requests.auth.AuthBase):
+    def __init__(self, token):
+        self.token = token
+    def __call__(self, r):
+        r.headers['Authorization'] = "Bearer " + self.token
+        return r
+
 def getNonce():
     response = requests.get(host + '/provider/' + wallet)
 
