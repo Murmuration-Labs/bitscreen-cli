@@ -7,24 +7,23 @@ from .auth import host, getConfigFromFile
 
 app = typer.Typer()
 
+state = {
+    'accessToken': None,
+    'providerId': None
+}
+
 def getFilters(params = {}):
-    accessToken = getConfigFromFile('access_token')
-    providerId = getConfigFromFile('provider_id')
+    params['providerId'] = state['providerId'];
 
-    params['providerId'] = providerId;
-
-    response = requests.get(host + '/filter', params=params, headers={'Authorization': 'Bearer ' + accessToken})
+    response = requests.get(host + '/filter', params=params, headers={'Authorization': 'Bearer ' + state['accessToken']})
     filters = response.json()
 
     return filters
 
 def getFilterDetails(filterId, params = {}):
-    accessToken = getConfigFromFile('access_token')
-    providerId = getConfigFromFile('provider_id')
+    params['providerId'] = state['providerId'];
 
-    params['providerId'] = providerId;
-
-    response = requests.get(host + '/filter/' + filterId, params=params, headers={'Authorization': 'Bearer ' + accessToken})
+    response = requests.get(host + '/filter/' + filterId, params=params, headers={'Authorization': 'Bearer ' + state['accessToken']})
     filters = response.json()
 
     return filters
@@ -98,6 +97,11 @@ def details(filter: str):
 @app.command()
 def add():
     print("Not implemented yet.")
+
+@app.callback()
+def getAuthData():
+    state['accessToken'] = getConfigFromFile('access_token')
+    state['providerId'] = getConfigFromFile('provider_id')
 
 if __name__ == "__main__":
     app()
