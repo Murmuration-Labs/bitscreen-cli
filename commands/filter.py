@@ -173,6 +173,43 @@ def edit(
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
 
+@app.command()
+def add(
+    name: str = typer.Option(..., prompt=True),
+    description: str = typer.Option(..., prompt=True),
+    visibility: str = typer.Option(..., prompt="What visibility should the filter have? [Private/Public/Shareable]", callback=parseVisibilityCallback),
+    override: int = typer.Option(..., prompt="Is this an override filter? [0/1]", callback=parseOverrideCallback),
+):
+    filter = {
+        'cids': [],
+        'enabled': True,
+        'name': name,
+        'description': description,
+        'visibility': visibility,
+        'override': (override == 1),
+        'providerId': state['providerId'],
+    }
+
+    response = requests.post(f"{host}/filter", json=filter, auth=BearerAuth(state['accessToken']))
+
+    filter = response.json()
+
+    providerFilter = {
+        'active': True,
+        'filterId': filter['id'],
+        'providerId': state['providerId']
+    }
+    response = requests.post(f"{host}/provider-filter", json=providerFilter, auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+        filter['provider_Filters'] = []
+        filter['cids'] = []
+        printFilterDetails(filter)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
+
+
 @app.command(name="add-cid")
 def add_cid(filter: str, cid: str, refUrl: str = ""):
     filter = getFilterDetails(filter)
