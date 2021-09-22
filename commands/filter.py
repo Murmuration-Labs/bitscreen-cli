@@ -4,6 +4,13 @@ import typer
 import os
 from tabulate import tabulate
 from .auth import host, getConfigFromFile, BearerAuth
+from typing import Optional
+
+VISIBILITY_TYPES = {
+    1: 'Private',
+    2: 'Public',
+    3: 'Shareable'
+}
 
 app = typer.Typer()
 
@@ -29,11 +36,24 @@ def getFilterDetails(filterId, params = {}):
     return filters
 
 def getReadableVisibility(visibilityId):
-    return {
-        1: 'Private',
-        2: 'Public',
-        3: 'Shareable'
-    }[visibilityId]
+    return VISIBILITY_TYPES[visibilityId]
+
+def parseVisibilityCallback(value: str):
+    if value is None:
+        return None
+
+    for key in VISIBILITY_TYPES:
+        if VISIBILITY_TYPES[key].lower() == value.lower():
+            return key
+    raise typer.BadParameter("Invalid visibility type. Allowed types are: Private, Public, Shareable")
+
+def parseOverrideCallback(value: int):
+    if value is None:
+        return None
+
+    if value >= 0 and value <= 1:
+        return value
+    raise typer.BadParameter("Invalid override value. Allowed types are: 0, 1")
 
 def printFilterLists(filterList):
     headers = ["ID", "Name", "Visibility", "Status", "Subscribers", "CIDs", "Override", "Provider", "Description"]
@@ -124,6 +144,34 @@ def enable(filter: str):
 @app.command()
 def disable(filter: str):
     setFilterStatus(filter, False)
+
+@app.command()
+def edit(
+    filter: str,
+    name: str = None,
+    description: str = None,
+    override: int = typer.Option(None, callback=parseOverrideCallback),
+    visibility: str = typer.Option(None, callback=parseVisibilityCallback)
+):
+    filter = getFilterDetails(filter)
+    if name is not None:
+        filter['name'] = name
+
+    if description is not None:
+        filter['description'] = description
+
+    if override is not None:
+        filter['override'] = (override == 1)
+
+    if visibility is not None:
+        filter['visibility'] = visibility
+
+    response = requests.put(f"{host}/filter/{filter['id']}", json=filter, auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
 
 @app.command()
 def add():
