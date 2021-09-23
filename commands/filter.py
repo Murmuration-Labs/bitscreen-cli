@@ -245,6 +245,32 @@ def remove_cid(filter: str, cid: str):
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
 
+@app.command()
+def delete(filter: str, confirm: bool = False):
+    filter = getFilterDetails(filter)
+
+    providerFilter = None
+    for providerFilter in filter['provider_Filters']:
+        if providerFilter['provider']['id'] == state['providerId']:
+            providerFilter = providerFilter['id']
+            break
+
+    if providerFilter is None:
+        raise typer.Exit("You do not own or import this filter.");
+
+    if not confirm:
+        confirm = typer.confirm(f"Are you sure you want to delete filter {filter['name']}?")
+
+    if not confirm:
+        raise typer.Exit("Aborting.");
+
+    response = requests.delete(f"{host}/provider-filter/{state['providerId']}/{filter['id']}", auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Deleted.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
+
 @app.callback()
 def getAuthData():
     state['accessToken'] = getConfigFromFile('access_token')
