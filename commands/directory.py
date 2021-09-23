@@ -93,6 +93,44 @@ def details(filter: str):
 
     printPublicFilterDetails(filter)
 
+@app.command(name="import")
+def importFilter(filter: str):
+    filter = getPublicFilterDetails(filter)
+    if filter['isImported']:
+        raise typer.Exit("Filter already imported.")
+
+    if filter['provider']['id'] == state['providerId']:
+        raise typer.Exit("Cannot import your own filter.")
+
+    if filter['visibility'] == 1:
+        raise typer.Exit("Filter is not public or shareable.")
+
+    providerFilter = {
+        'active': True,
+        'filterId': filter['id'],
+        'providerId': state['providerId']
+    }
+    response = requests.post(f"{host}/provider-filter", json=providerFilter, auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Imported.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
+
+@app.command(name="discard")
+def discardFilter(filter: str):
+    filter = getPublicFilterDetails(filter)
+
+    if not filter['isImported']:
+        raise typer.Exit("This filter is not imported.")
+
+    response = requests.delete(f"{host}/provider-filter/{state['providerId']}/{filter['id']}", auth=BearerAuth(state['accessToken']))
+    if response.status_code == 200:
+        typer.secho("Discarded.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        typer.secho(response.json())
+
 @app.callback()
 def getAuthData():
     state['accessToken'] = getConfigFromFile('access_token')
