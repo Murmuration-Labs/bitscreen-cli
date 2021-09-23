@@ -23,7 +23,13 @@ class BearerAuth(requests.auth.AuthBase):
 def getNonce():
     response = requests.get(host + '/provider/' + wallet)
 
-    return response.json()['nonce']
+    if response.status_code == 200:
+        try:
+            return response.json()['nonce']
+        except:
+            return None
+
+    return None
 
 def signMessage(msg):
     message = encode_defunct(text=msg)
@@ -37,7 +43,11 @@ def authenticate(signature):
     response = requests.post(host + '/provider/auth/' + wallet, json=payload)
     provider = response.json()
 
-    accessToken = provider['accessToken']
+    if 'accessToken' in provider:
+        accessToken = provider['accessToken']
+
+        return True
+    return False
 
 def getConfigDirectory():
     userHome = os.path.expanduser('~')
@@ -86,9 +96,19 @@ def login():
         privateKey = typer.prompt("What's your private key?")
 
     nonce = getNonce()
-    signedNonce = signMessage(nonce)
+    if nonce is None:
+        raise typer.Exit("There's no account associated with this wallet.")
 
-    authenticate(signedNonce)
+    try:
+        signedNonce = signMessage(nonce)
+    except:
+        raise typer.Exit("Invalid private key.")
+
+    isAuthenticated = authenticate(signedNonce)
+
+    if not isAuthenticated:
+        raise typer.Exit("Login failed.")
+
     typer.secho(f"Authenticated as " + provider['businessName'], fg=typer.colors.GREEN)
 
     saveCredentials = typer.confirm("Do you want to save credentials for future logins?")
