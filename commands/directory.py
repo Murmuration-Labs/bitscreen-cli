@@ -21,15 +21,33 @@ def getPublicFilters(params = {}):
 
     return filters['data']
 
+def getPublicFilterDetails(filterId, params = {}):
+    params['providerId'] = state['providerId'];
+
+    response = requests.get(host + '/filter/public/details/' + filterId, params=params, auth=BearerAuth(state['accessToken']))
+
+    if response.status_code == 200:
+        data = response.json()
+        data['filter']['isImported'] = data['isImported']
+        data['filter']['provider'] = data['provider']
+        return data['filter']
+
+    raise typer.Exit("Filter not found.")
+
+def getStatusFromFilter(filter):
+    status = typer.style("Not imported", fg=typer.colors.WHITE, bg=typer.colors.RED)
+    if filter['isImported']:
+        status = typer.style("Imported", fg=typer.colors.GREEN, bold=True)
+    elif filter['provider']['id'] == state['providerId']:
+        status = typer.style("Owned", fg=typer.colors.GREEN)
+
+    return status
+
 def printPublicFilterLists(filterList: list):
     headers = ["ID", "Name", "Visibility", "Status", "Subscribers", "CIDs", "Override", "Provider", "Description"]
     rows = [];
     for filter in filterList:
-        status = typer.style("Not imported", fg=typer.colors.WHITE, bg=typer.colors.RED)
-        if filter['isImported']:
-            status = typer.style("Imported", fg=typer.colors.GREEN, bold=True)
-        elif filter['provider']['id'] == state['providerId']:
-            status = typer.style("Owned", fg=typer.colors.GREEN)
+        status = getStatusFromFilter(filter)
 
         rows.append([
             filter['shareId'],
@@ -44,6 +62,21 @@ def printPublicFilterLists(filterList: list):
         ])
     print(tabulate(rows, headers, tablefmt="fancy_grid"))
 
+def printPublicFilterDetails(filter):
+    typer.echo(getStatusFromFilter(filter))
+    typer.secho(f"Filter name:  {filter['name']}")
+    typer.secho(f"Description: {filter['description']}")
+    typer.secho(f"ID: {filter['shareId']}")
+    typer.secho(f"Subscribers: {len(filter['provider_Filters'])}")
+    typer.secho(f"Override: {('Yes' if filter['override'] else 'No')}")
+    typer.secho(f"CID count: {len(filter['cids'])}")
+    typer.secho(f"Business name: {filter['provider']['businessName']}")
+    typer.secho(f"Contact person: {filter['provider']['contactPerson']}")
+    typer.secho(f"Website: {filter['provider']['website']}")
+    typer.secho(f"Email: {filter['provider']['businessName']}")
+    typer.secho(f"Address: {filter['provider']['businessName']}")
+    typer.secho(f"City & Country: {filter['provider']['businessName']}")
+
 @app.command()
 def list(search: str = ""):
     params = {};
@@ -53,6 +86,12 @@ def list(search: str = ""):
 
     typer.secho(f"Found {len(filters)} filters.")
     printPublicFilterLists(filters)
+
+@app.command()
+def details(filter: str):
+    filter = getPublicFilterDetails(filter)
+
+    printPublicFilterDetails(filter)
 
 @app.callback()
 def getAuthData():
