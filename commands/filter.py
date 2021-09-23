@@ -31,9 +31,11 @@ def getFilterDetails(filterId, params = {}):
     params['providerId'] = state['providerId'];
 
     response = requests.get(host + '/filter/' + filterId, params=params, auth=BearerAuth(state['accessToken']))
-    filters = response.json()
+    if response.status_code == 200:
+        filters = response.json()
+        return filters
 
-    return filters
+    raise typer.Exit("Filter not found.")
 
 def getReadableVisibility(visibilityId):
     return VISIBILITY_TYPES[visibilityId]
