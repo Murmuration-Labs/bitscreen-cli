@@ -276,5 +276,8 @@ def getAuthData():
     state['accessToken'] = getConfigFromFile('access_token')
     state['providerId'] = getConfigFromFile('provider_id')
 
+    if state['accessToken'] is None or state['providerId'] is None:
+        raise typer.Exit("Not logged in.")
+
 if __name__ == "__main__":
     app()

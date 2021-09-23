@@ -62,6 +62,9 @@ def getConfigFromFile(configKey):
     config = json.load(cf)
     cf.close()
 
+    if configKey not in config:
+        return None
+
     return config[configKey]
 
 @app.command()
