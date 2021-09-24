@@ -4,6 +4,7 @@ import typer
 import os
 from web3.auto import w3
 from eth_account.messages import encode_defunct
+from py_crypto_hd_wallet import HdWalletFactory, HdWalletCoins, HdWalletSpecs, HdWalletDataTypes, HdWalletKeyTypes
 
 app = typer.Typer()
 
@@ -67,8 +68,18 @@ def getConfigFromFile(configKey):
 
     return config[configKey]
 
+def getAuthDataFromSeed(seed: str):
+    hd_wallet_fact = HdWalletFactory(HdWalletCoins.ETHEREUM)
+    hd_wallet = hd_wallet_fact.CreateFromMnemonic("_my_wallet_", seed)
+    hd_wallet.Generate(addr_num=1)
+    hd_wallet_key = hd_wallet.GetData(HdWalletDataTypes.ADDRESSES)[0]
+    address = hd_wallet_key.GetKey(HdWalletKeyTypes.ADDRESS)
+    private_key = hd_wallet_key.GetKey(HdWalletKeyTypes.RAW_PRIV)
+
+    return address.lower(), private_key
+
 @app.command()
-def login():
+def login(fromSeed: bool = False):
     global wallet, privateKey, accessToken
     configDir = getConfigDirectory()
 
@@ -88,15 +99,22 @@ def login():
     config = json.load(cf)
     cf.close()
 
-    if 'eth_wallet' in config:
-        wallet = config['eth_wallet'].lower()
+    if fromSeed:
+        seed = typer.prompt("Please provide your seed phrase: ")
+        try:
+            wallet, privateKey = getAuthDataFromSeed(seed)
+        except:
+            raise typer.Exit("Invalid seed phrase.")
     else:
-        wallet = typer.prompt("What's you Ethereum wallet address?").lower()
+        if 'eth_wallet' in config:
+            wallet = config['eth_wallet'].lower()
+        else:
+            wallet = typer.prompt("What's you Ethereum wallet address?").lower()
 
-    if 'eth_private_key' in config:
-        privateKey = config['eth_private_key']
-    else:
-        privateKey = typer.prompt("What's your private key?")
+        if 'eth_private_key' in config:
+            privateKey = config['eth_private_key']
+        else:
+            privateKey = typer.prompt("What's your private key?")
 
     nonce = getNonce()
     if nonce is None:
