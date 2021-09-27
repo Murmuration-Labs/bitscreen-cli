@@ -4,8 +4,17 @@ version = "0.1.0"
 description = "CLI client for BitScreen"
 authors = ["Stefan Manciu <stefan@keyko.io>"]
 
+[tool.poetry.scripts]
+bitscreen-cli = "bitscreen_cli.main:app"
+
 [tool.poetry.dependencies]
 python = "^3.9"
+typer = {extras = ["all"], version = "^0.4.0"}
+requests = "^2.26.0"
+web3 = "^5.23.1"
+tabulate = "^0.8.9"
+dashing = "^0.1.0"
+py-crypto-hd-wallet = "^0.13.0"
 
 [tool.poetry.dev-dependencies]
 
