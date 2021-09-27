@@ -158,5 +158,15 @@ def logout():
     with open(configFile, 'w') as f:
         f.write(json.dumps({}))
 
+@app.command()
+def register(wallet: str):
+    response = requests.post(f'{host}/provider/{wallet}')
+
+    if response.status_code == 200:
+        typer.secho("Done. You can proceed to log in.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
+    else:
+        typer.secho("Error: ", bg=typer.colors.RED)
+        print(response.json()['message'])
+
 if __name__ == "__main__":
     app()
