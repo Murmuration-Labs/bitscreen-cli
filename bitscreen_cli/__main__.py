@@ -1,2 +1,2 @@
 from . import app
-app()
+app(prog_name="bitscreen-cli")
