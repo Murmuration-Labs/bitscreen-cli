@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "bitscreen-cli"
-version = "0.1.4"
+version = "0.1.5"
 description = "CLI client for BitScreen"
 authors = ["Stefan Manciu <stefan@keyko.io>"]
+readme = "README.md"
 
 [tool.poetry.scripts]
 bitscreen-cli = "bitscreen_cli:app"
