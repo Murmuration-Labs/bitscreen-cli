@@ -8,7 +8,7 @@ from py_crypto_hd_wallet import HdWalletFactory, HdWalletCoins, HdWalletSpecs, H
 
 app = typer.Typer()
 
-host = "http://172.30.1.3:3030"
+host = "https://bxn.mml.keyko.rocks"
 wallet = None
 privateKey = None
 accessToken = None
