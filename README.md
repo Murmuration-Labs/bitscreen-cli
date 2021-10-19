@@ -11,7 +11,7 @@ Before starting to interact with BitScreen, you should first log in. You can do 
 ### Using a private key
 To obtain your private key from Metamask, you can check out [this](https://metamask.zendesk.com/hc/en-us/articles/360015289632-How-to-Export-an-Account-Private-Key) tutorial.
 ```console 
-bitscreen-cli auth login
+$ bitscreen-cli auth login
 What's you Ethereum wallet address?: <your wallet address>
 What's your private key?: <your private key>
 ```
@@ -19,7 +19,7 @@ What's your private key?: <your private key>
 ### Using a mnemonic/seed phrase
 To obtain your seed phrase from Metamask, you can check out [this](https://metamask.zendesk.com/hc/en-us/articles/360015290032-How-to-reveal-your-Secret-Recovery-Phrase) tutorial.
 ```console 
-bitscreen-cli auth login --from-seed
+$ bitscreen-cli auth login --from-seed
 Please provide your seed phrase: <your seed phrase>
 ```
 
