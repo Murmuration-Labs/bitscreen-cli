@@ -15,6 +15,7 @@ $ bitscreen-cli [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `auth`
+* `cid`
 * `dashboard`
 * `directory`
 * `filter`
@@ -77,6 +78,35 @@ $ bitscreen-cli auth register [OPTIONS] WALLET
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+## `bitscreen-cli cid`
+
+**Usage**:
+
+```console
+$ bitscreen-cli cid [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `list`
+
+### `bitscreen-cli cid list`
+
+**Usage**:
+
+```console
+$ bitscreen-cli cid list [OPTIONS]
+```
+
+**Options**:
+
+* `-o, --outputfile TEXT`
 * `--help`: Show this message and exit.
 
 ## `bitscreen-cli dashboard`
