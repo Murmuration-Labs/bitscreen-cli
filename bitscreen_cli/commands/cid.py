@@ -42,6 +42,26 @@ def list(
     for cid in cids:
         typer.secho(cid)
 
+@app.command()
+def add(
+    cid: str,
+    cidFile: str = typer.Option("~/.murmuration/bitscreen", "--file", "-f")
+):
+    filePath = os.getenv("BITSCREEN_CIDS_FILE", cidFile)
+    if not os.path.isfile(os.path.expanduser(filePath)):
+        typer.secho("File not found: " + cidFile)
+        typer.Exit()
+    f = open(os.path.expanduser(filePath));
+    data = json.load(f)
+    print(data)
+    f.close()
+
+    data.append(cid)
+
+    with open(os.path.expanduser(filePath), 'w') as f:
+        json.dump(data, f)
+
+
 @app.callback()
 def getAuthData():
     state['accessToken'] = getConfigFromFile('access_token')
