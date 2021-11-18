@@ -1,7 +1,7 @@
 # BitScreen CLI
 
 ## Installation
-```console 
+```console
 pip install bitscreen-cli
 ```
 
@@ -10,7 +10,7 @@ Before starting to interact with BitScreen, you should first log in. You can do 
 
 ### Using a private key
 To obtain your private key from Metamask, you can check out [this](https://metamask.zendesk.com/hc/en-us/articles/360015289632-How-to-Export-an-Account-Private-Key) tutorial.
-```console 
+```console
 $ bitscreen-cli auth login
 What's you Ethereum wallet address?: <your wallet address>
 What's your private key?: <your private key>
@@ -18,7 +18,7 @@ What's your private key?: <your private key>
 
 ### Using a mnemonic/seed phrase
 To obtain your seed phrase from Metamask, you can check out [this](https://metamask.zendesk.com/hc/en-us/articles/360015290032-How-to-reveal-your-Secret-Recovery-Phrase) tutorial.
-```console 
+```console
 $ bitscreen-cli auth login --from-seed
 Please provide your seed phrase: <your seed phrase>
 ```
@@ -46,6 +46,7 @@ $ bitscreen-cli [OPTIONS] COMMAND [ARGS]...
 * `directory`
 * `filter`
 * `settings`
+* `setup`
 
 ## `bitscreen-cli auth`
 
@@ -105,6 +106,30 @@ $ bitscreen-cli auth register [OPTIONS] WALLET
 **Options**:
 
 * `--help`: Show this message and exit.
+
+## `bitscreen-cli setup`
+
+**Usage**:
+
+```console
+$ bitscreen-cli setup [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `install`
+
+### `bitscreen-cli setup install`
+
+**Usage**:
+
+```console
+$ bitscreen-cli setup install
+```
 
 ## `bitscreen-cli cid`
 
