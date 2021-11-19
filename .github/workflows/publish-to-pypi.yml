@@ -13,16 +13,22 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.9
-      - name: Install pypa/build
+      - name: Install setuptools
         run: >-
           python -m
           pip install
           setuptools
           --user
+      - name: Install wheel
+        run: >-
+          python -m
+          pip install
+          wheel
+          --user
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m
-          setup.py
+          setup
           sdist
           bdist_wheel
       - name: Publish distribution to PyPI
