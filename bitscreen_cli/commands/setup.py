@@ -80,7 +80,7 @@ def install():
          f1.truncate()
          f1.write(contents)
 
-     typer.secho("Done.")
+    typer.secho("Done.")
 
 if __name__ == "__main__":
     app()
