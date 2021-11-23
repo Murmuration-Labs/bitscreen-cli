@@ -63,11 +63,11 @@ def install():
 
     typer.secho("Configuring Lotus Miner to use BitScreen Filter.")
     minerConfigPath = os.getenv('LOTUS_MINER_PATH')
-    if len(minerConfigPath) == 0:
+    if minerConfigPath is None or len(minerConfigPath) == 0:
         raise typer.Exit("LOTUS_MINER_PATH environment variable not found. Could not configure BitScreen for the Lotus Miner")
 
     goPath = subprocess.check_output(["go", "env", "GOPATH"]).decode().strip()
-    if len(goPath) == 0:
+    if goPath is None or len(goPath) == 0:
         raise typer.Exit("GOPATH environment variable not found. Could not configure BitScreen for the Lotus Miner")
     goPath += "/bin/bitscreen"
 

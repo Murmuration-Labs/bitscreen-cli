@@ -20,7 +20,7 @@ dependency_links = [x.strip().replace('git+', '') for x in all_reqs \
 setup (
  name = 'bitscreen-cli',
  description = 'CLI client for BitScreen',
- version = '0.1.13',
+ version = '0.1.14',
  packages = find_packages(),
  install_requires = install_requires,
  python_requires='>=3.0',
