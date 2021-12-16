@@ -20,7 +20,7 @@ def install():
 
     typer.secho("Installing BitScreen Updater.")
     try:
-        subprocess.call(["pip", "install", "bitscreen-updater"], stdout=subprocess.DEVNULL)
+        subprocess.call(["pip3", "install", "bitscreen-updater"], stdout=subprocess.DEVNULL)
     except OSError as e:
         print(e);
         return;
