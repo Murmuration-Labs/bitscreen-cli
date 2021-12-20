@@ -100,6 +100,12 @@ def login(fromSeed: bool = False):
     cf.close()
 
     if fromSeed:
+        typer.secho("""
+            Warning: when authenticating using a seed phrase, you will
+            automatically be logged on the main wallet address associated with
+            that seed phrase. If you do not wish to log into the main wallet
+            address, please log in with the private key.
+        """);
         seed = typer.prompt("Please provide your seed phrase: ")
         try:
             wallet, privateKey = getAuthDataFromSeed(seed)
@@ -130,7 +136,10 @@ def login(fromSeed: bool = False):
     if not isAuthenticated:
         raise typer.Exit("Login failed.")
 
-    typer.secho(f"Authenticated as " + provider['businessName'], fg=typer.colors.GREEN)
+    if provider['businessName']:
+        typer.secho(f"Authenticated as " + provider['businessName'], fg=typer.colors.GREEN)
+    else:
+        typer.secho(f"Authenticated.", fg=typer.colors.GREEN)
 
     saveCredentials = typer.confirm("Do you want to save credentials for future logins?")
 
@@ -160,6 +169,14 @@ def logout():
 
 @app.command()
 def register(wallet: str):
+    typer.secho("In order to register, you must first agree to the Terms of Service and Privacy Policy.");
+    typer.secho("Terms of Service: https://github.com/Murmuration-Labs/bitscreen/blob/master/terms_of_service.md");
+    typer.secho("Privacy Policy: https://github.com/Murmuration-Labs/bitscreen/blob/master/privacy_policy.md");
+    agreement = typer.confirm("Do you agree to the Terms of Service and Privacy Policy?");
+
+    if not agreement:
+        raise typer.Exit("You were not registered because you didn't agree to the Terms of Service and Privacy Policy.");
+
     response = requests.post(f'{host}/provider/{wallet}')
 
     if response.status_code == 200:
