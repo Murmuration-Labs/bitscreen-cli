@@ -76,7 +76,7 @@ $ bitscreen-cli auth login [OPTIONS]
 
 **Options**:
 
-* `--fromseed / --no-fromseed`: [default: False]
+* `--fromseed`: Will require a seed phrase.
 * `--help`: Show this message and exit.
 
 ### `bitscreen-cli auth logout`
