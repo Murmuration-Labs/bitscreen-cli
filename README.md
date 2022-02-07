@@ -1,4 +1,4 @@
-# BitScreen CLI
+# BitScreen CLI Guide
 
 ## Installation
 ```console
