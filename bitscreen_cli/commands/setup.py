@@ -69,16 +69,36 @@ def install():
     goPath = subprocess.check_output(["go", "env", "GOPATH"]).decode().strip()
     if goPath is None or len(goPath) == 0:
         raise typer.Exit("GOPATH environment variable not found. Could not configure BitScreen for the Lotus Miner")
+
     goPath += "/bin/bitscreen"
-
+    goPath = os.path.expanduser(goPath)
+    minerConfigPath = os.path.expanduser(minerConfigPath)
+    minerConfigPath = os.path.join(minerConfigPath, "config.toml")
     with open(minerConfigPath + "/config.toml", "r+") as f1:
-         contents = f1.read()
-         contents = re.sub(r"\s\sFilter\s=\s\".*\"", f"  Filter = \"{goPath}\"", contents)
-         contents = re.sub(r"\s\sRetrievalFilter\s=\s\".*\"", f"  RetrievalFilter = \"{goPath}\"", contents)
+        contents = f1.read()
+        match = re.search(r'\s\sFilter\s=\s".*"', contents)
+        if match:
+            contents = re.sub(r'\s\sFilter\s=\s".*"', f'  Filter = "{goPath}"', contents)
+        else:
+            match = re.search(r'#Filter\s=\s".*"', contents)
+            if match:
+                contents = re.sub(r'#Filter\s=\s".*"', f'  Filter = "{goPath}"', contents)
+            else:
+                contents += f'\n  Filter = "{goPath}"'
 
-         f1.seek(0)
-         f1.truncate()
-         f1.write(contents)
+        match = re.search(r'\s\sRetrievalFilter\s=\s".*"', contents)
+        if match:
+            contents = re.sub(r'\s\sRetrievalFilter\s=\s".*"', f'  RetrievalFilter = "{goPath}"', contents)
+        else:
+            match = re.search(r'#RetrievalFilter\s=\s".*"', contents)
+            if match:
+                contents = re.sub(r'#RetrievalFilter\s=\s".*"', f'  RetrievalFilter = "{goPath}"', contents)
+            else:
+                contents += f'\n  RetrievalFilter = "{goPath}"'
+
+        f1.seek(0)
+        f1.truncate()
+        f1.write(contents)
 
     typer.secho("Done.")
 
