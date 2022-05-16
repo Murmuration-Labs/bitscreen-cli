@@ -74,7 +74,7 @@ def install():
     goPath = os.path.expanduser(goPath)
     minerConfigPath = os.path.expanduser(minerConfigPath)
     minerConfigPath = os.path.join(minerConfigPath, "config.toml")
-    with open(minerConfigPath + "/config.toml", "r+") as f1:
+    with open(minerConfigPath, "r+") as f1:
         contents = f1.read()
         match = re.search(r'\s\sFilter\s=\s".*"', contents)
         if match:
