@@ -10,25 +10,34 @@ from .auth import host, getConfigFromFile
 app = typer.Typer()
 
 @app.command()
-def install():
+def install(
+    cli: bool = typer.Option(None),
+    key: str = typer.Option(None)
+):
+
     typer.secho("Installing BitScreen Plugin.")
     try:
         subprocess.call(["go", "install", "github.com/Murmuration-Labs/bitscreen/cmd/bitscreen@latest"], stdout=subprocess.DEVNULL)
     except OSError as e:
-        print(e);
-        return;
+        print(e)
+        return
 
     typer.secho("Installing BitScreen Updater.")
     try:
         subprocess.call(["pip3", "install", "bitscreen-updater"], stdout=subprocess.DEVNULL)
     except OSError as e:
-        print(e);
-        return;
+        print(e)
+        return
 
-    privateKey = None
+    privateKey = key
     seedPhrase = None
-    autoAuth = typer.confirm("Would you like to authenticate the BitScreen Updater with your CLI credentials?")
-    if autoAuth:
+
+    if cli is True:
+        autoAuth = True
+    else:
+        autoAuth = typer.confirm("Would you like to authenticate the BitScreen Updater with your CLI credentials?")
+
+    if autoAuth and not privateKey:
         privateKey = getConfigFromFile("eth_private_key")
         if not privateKey:
             typer.secho("Private key not found. Maybe you didn't choose to save it.")
@@ -36,9 +45,9 @@ def install():
         typer.secho("Proceeding with manual authentication.")
         authMethod = typer.prompt("How would you like to authenticate? [0] -> Private Key [1] -> Seed Phrase")
         if authMethod == "0":
-            privateKey = typer.prompt("Please insert your private key: ")
+            privateKey = typer.prompt("Please insert your private key: ", hide_input=True)
         if authMethod == "1":
-            seedPhrase = typer.prompt("Please insert your seed phrase: ")
+            seedPhrase = typer.prompt("Please insert your seed phrase: ", hide_input=True)
 
         if not privateKey and not seedPhrase:
             raise typer.Exit("Invalid option selected")
