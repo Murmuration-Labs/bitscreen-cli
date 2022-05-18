@@ -38,7 +38,10 @@ def install(
         autoAuth = typer.confirm("Would you like to authenticate the BitScreen Updater with your CLI credentials?")
 
     if autoAuth and not privateKey:
-        privateKey = getConfigFromFile("eth_private_key")
+        try:
+            privateKey = getConfigFromFile("eth_private_key")
+        except:
+            typer.secho("Config file not found. Are you logged in?")
         if not privateKey:
             typer.secho("Private key not found. Maybe you didn't choose to save it.")
     if not privateKey:
