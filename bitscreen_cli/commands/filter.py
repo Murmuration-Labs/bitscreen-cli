@@ -9,7 +9,8 @@ from typing import Optional
 VISIBILITY_TYPES = {
     1: 'Private',
     2: 'Public',
-    3: 'Shareable'
+    3: 'Shareable',
+    4: 'Exception'
 }
 
 app = typer.Typer()
@@ -58,7 +59,7 @@ def parseOverrideCallback(value: int):
     raise typer.BadParameter("Invalid override value. Allowed types are: 0, 1")
 
 def printFilterLists(filterList):
-    headers = ["ID", "Name", "Visibility", "Status", "Subscribers", "CIDs", "Override", "Provider", "Description"]
+    headers = ["ID", "Name", "Visibility", "Status", "Subscribers", "CIDs", "Provider", "Description"]
     rows = [];
     for filter in filterList:
         rows.append([
@@ -68,7 +69,6 @@ def printFilterLists(filterList):
             'Enabled' if filter['enabled'] else 'Disabled',
             len(filter['provider_Filters']),
             filter['cidsCount'],
-            'Yes' if filter['override'] else 'No',
             filter['provider']['businessName'],
             filter['description']
         ])
@@ -98,7 +98,6 @@ def printFilterDetails(filter):
     typer.secho(f"ID: {filter['shareId']}")
     typer.secho(f"Visibility: {getReadableVisibility(filter['visibility'])}")
     typer.secho(f"Subscribers: {len(filter['provider_Filters'])}")
-    typer.secho(f"Override: {('Yes' if filter['override'] else 'No')}")
     typer.secho(f"Owner: {filter['provider']['businessName']}")
     typer.secho(f"CID count: {len(filter['cids'])}")
 
@@ -188,7 +187,6 @@ def add(
         'name': name,
         'description': description,
         'visibility': visibility,
-        'override': (override == 1),
         'providerId': state['providerId'],
     }
 
