@@ -1,8 +1,5 @@
-import json
-import requests
 import typer
-import os
-from .auth import host, getConfigFromFile, BearerAuth
+from auth import getConfigFromFile
 from dashing import *
 
 app = typer.Typer()

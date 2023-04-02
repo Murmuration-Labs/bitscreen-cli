@@ -1,10 +1,7 @@
-import json
 import requests
 import typer
-import os
 from tabulate import tabulate
-from .auth import host, getConfigFromFile, BearerAuth
-from typing import Optional
+from auth import host, getConfigFromFile, BearerAuth
 
 VISIBILITY_TYPES = {
     1: 'Private',
@@ -21,8 +18,6 @@ state = {
 }
 
 def getFilters(params = {}):
-    params['providerId'] = state['providerId'];
-
     response = requests.get(host + '/filter', params=params, auth=BearerAuth(state['accessToken']))
     filters = response.json()
 
