@@ -1,9 +1,6 @@
-import json
 import requests
 import typer
-import os
-from .auth import host, getConfigFromFile, BearerAuth
-from typing import Optional
+from auth import host, getConfigFromFile, BearerAuth
 
 state = {
     'accessToken': None,

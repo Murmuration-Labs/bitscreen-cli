@@ -1,9 +1,8 @@
-import json
-import requests
 import typer
-import os
-from .auth import host, getConfigFromFile, BearerAuth
+from auth import getConfigFromFile
 from dashing import *
+import requests
+from auth import host, getConfigFromFile, BearerAuth
 
 app = typer.Typer()
 
@@ -12,28 +11,37 @@ state = {
     'providerId': None
 }
 
+def get_dashboard_data():
+    response = requests.get(host + '/filter/dashboard', auth=BearerAuth(state['accessToken']))
+    dashboard_data = response.json()
+
+    return dashboard_data
+
 @app.command()
 def show():
+    dashboard_data = get_dashboard_data()
+    typer.secho(dashboard_data)
     textColor = 2
     borderColor = 3
     ui = VSplit(
         HSplit(
-            Text("Currently Filtering CIDs\n8", color=textColor, border_color=borderColor),
-            Text("List subscriberss\n8", color=textColor, border_color=borderColor),
-            Text("Deals declined\n8", color=textColor, border_color=borderColor),
+            Text(f"Currently Filtering CIDs\n{dashboard_data['currentlyFiltering']}", color=textColor, border_color=borderColor),
+            Text(f"List subscriberss\n{dashboard_data['listSubscribers']}", color=textColor, border_color=borderColor),
+            Text(f"Deals declined\n{dashboard_data['dealsDeclined']}", color=textColor, border_color=borderColor),
         ),
         HSplit(
-            Text("Active lists\n8", color=textColor, border_color=borderColor),
-            Text("Inactive lists\n8", color=textColor, border_color=borderColor),
-            Text("Imported lists\n8", color=textColor, border_color=borderColor),
-            Text("Private lists\n8", color=textColor, border_color=borderColor),
-            Text("Public lists\n8", color=textColor, border_color=borderColor),
+            Text(f"Active lists\n{dashboard_data['activeLists']}", color=textColor, border_color=borderColor),
+            Text(f"Inactive lists\n{dashboard_data['inactiveLists']}", color=textColor, border_color=borderColor),
+            Text(f"Imported lists\n{dashboard_data['importedLists']}", color=textColor, border_color=borderColor),
+            Text(f"Private lists\n{dashboard_data['privateLists']}", color=textColor, border_color=borderColor),
+            Text(f"Public lists\n{dashboard_data['publicLists']}", color=textColor, border_color=borderColor),
         ),
         HSplit(),
         HSplit()
     )
 
     ui.display()
+
 
 @app.callback()
 def getAuthData():

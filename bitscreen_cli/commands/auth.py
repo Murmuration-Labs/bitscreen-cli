@@ -8,21 +8,24 @@ from py_crypto_hd_wallet import HdWalletFactory, HdWalletCoins, HdWalletSpecs, H
 
 app = typer.Typer()
 
-host = "https://bxn.mml.keyko.rocks"
+host = "http://172.30.1.3:3030"
 wallet = None
 privateKey = None
 accessToken = None
 provider = None
 
+
 class BearerAuth(requests.auth.AuthBase):
     def __init__(self, token):
         self.token = token
+
     def __call__(self, r):
         r.headers['Authorization'] = "Bearer " + self.token
         return r
 
+
 def getNonce():
-    response = requests.get(host + '/provider/' + wallet)
+    response = requests.get(host + '/provider/auth_info/' + wallet)
 
     if response.status_code == 200:
         try:
@@ -32,16 +35,21 @@ def getNonce():
 
     return None
 
+
 def signMessage(msg):
     message = encode_defunct(text=msg)
     signedMessage = w3.eth.account.sign_message(message, private_key=privateKey)
 
     return signedMessage.signature.hex()
 
+
 def authenticate(signature):
+    typer.echo('asd')
+    typer.secho(signature)
+    typer.echo('asd')
     global provider, accessToken
     payload = {'signature': signature}
-    response = requests.post(host + '/provider/auth/' + wallet, json=payload)
+    response = requests.post(host + '/provider/auth/wallet/' + wallet, json=payload)
     provider = response.json()
 
     if 'accessToken' in provider:
@@ -50,13 +58,16 @@ def authenticate(signature):
         return True
     return False
 
+
 def getConfigDirectory():
     userHome = os.path.expanduser('~')
     return userHome + '/.bitscreen'
 
+
 def getConfigFile():
     configDir = getConfigDirectory()
     return configDir + '/.cli_config'
+
 
 def getConfigFromFile(configKey):
     cf = open(getConfigFile())
@@ -68,6 +79,7 @@ def getConfigFromFile(configKey):
 
     return config[configKey]
 
+
 def getAuthDataFromSeed(seed: str):
     hd_wallet_fact = HdWalletFactory(HdWalletCoins.ETHEREUM)
     hd_wallet = hd_wallet_fact.CreateFromMnemonic("_my_wallet_", seed)
@@ -77,6 +89,7 @@ def getAuthDataFromSeed(seed: str):
     private_key = hd_wallet_key.GetKey(HdWalletKeyTypes.RAW_PRIV)
 
     return address.lower(), private_key
+
 
 @app.command()
 def login(fromSeed: bool = False):
@@ -88,6 +101,7 @@ def login(fromSeed: bool = False):
         typer.secho("Created bitscreen config directory.")
 
     configFile = getConfigFile()
+    typer.secho(os.path.isfile(configFile))
     if not os.path.isfile(configFile):
         with open(configFile, 'w') as fp:
             fp.write('{}')
@@ -155,6 +169,7 @@ def login(fromSeed: bool = False):
     with open(configFile, 'w') as f:
         f.write(json.dumps(toSave))
 
+
 @app.command()
 def logout():
     configDir = getConfigDirectory()
@@ -167,23 +182,29 @@ def logout():
     with open(configFile, 'w') as f:
         f.write(json.dumps({}))
 
+
 @app.command()
-def register(wallet: str):
+def register(wallet_address: str):
     typer.secho("In order to register, you must first agree to the Terms of Service and Privacy Policy.");
     typer.secho("Terms of Service: https://github.com/Murmuration-Labs/bitscreen/blob/master/terms_of_service.md");
     typer.secho("Privacy Policy: https://github.com/Murmuration-Labs/bitscreen/blob/master/privacy_policy.md");
     agreement = typer.confirm("Do you agree to the Terms of Service and Privacy Policy?");
 
     if not agreement:
-        raise typer.Exit("You were not registered because you didn't agree to the Terms of Service and Privacy Policy.");
+        raise typer.Exit(
+            "You were not registered because you didn't agree to the Terms of Service and Privacy Policy.");
 
-    response = requests.post(f'{host}/provider/{wallet}')
+    body = {
+        "accountType": '1'
+    }
+    response = requests.post(f'{host}/provider/wallet/{wallet_address}', json=body)
 
     if response.status_code == 200:
         typer.secho("Done. You can proceed to log in.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
     else:
         typer.secho("Error: ", bg=typer.colors.RED)
         print(response.json()['message'])
+
 
 if __name__ == "__main__":
     app()

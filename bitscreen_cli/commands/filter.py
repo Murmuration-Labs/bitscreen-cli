@@ -1,10 +1,7 @@
-import json
 import requests
 import typer
-import os
 from tabulate import tabulate
-from .auth import host, getConfigFromFile, BearerAuth
-from typing import Optional
+from auth import host, getConfigFromFile, BearerAuth
 
 VISIBILITY_TYPES = {
     1: 'Private',
@@ -20,26 +17,26 @@ state = {
     'providerId': None
 }
 
-def getFilters(params = {}):
-    params['providerId'] = state['providerId'];
 
+def getFilters(params={}):
     response = requests.get(host + '/filter', params=params, auth=BearerAuth(state['accessToken']))
     filters = response.json()
 
     return filters
 
-def getFilterDetails(filterId, params = {}):
-    params['providerId'] = state['providerId'];
 
-    response = requests.get(host + '/filter/' + filterId, params=params, auth=BearerAuth(state['accessToken']))
+def getFilterDetails(filterId):
+    response = requests.get(host + '/filter/' + filterId, auth=BearerAuth(state['accessToken']))
     if response.status_code == 200:
-        filters = response.json()
-        return filters
+        filter_json = response.json()
+        return filter_json
 
-    raise typer.Exit("Filter not found.")
+    raise typer.Exit(print(response.json()['message']))
+
 
 def getReadableVisibility(visibilityId):
     return VISIBILITY_TYPES[visibilityId]
+
 
 def parseVisibilityCallback(value: str):
     if value is None:
@@ -50,6 +47,7 @@ def parseVisibilityCallback(value: str):
             return key
     raise typer.BadParameter("Invalid visibility type. Allowed types are: Private, Public, Shareable")
 
+
 def parseOverrideCallback(value: int):
     if value is None:
         return None
@@ -57,6 +55,7 @@ def parseOverrideCallback(value: int):
     if value >= 0 and value <= 1:
         return value
     raise typer.BadParameter("Invalid override value. Allowed types are: 0, 1")
+
 
 def printFilterLists(filterList):
     headers = ["ID", "Name", "Visibility", "Status", "Subscribers", "CIDs", "Provider", "Description"]
@@ -74,6 +73,7 @@ def printFilterLists(filterList):
         ])
     print(tabulate(rows, headers, tablefmt="fancy_grid"))
 
+
 def printCidLists(cidList):
     headers = ["CID", "Reference URL", "Created", "Updated"]
     rows = []
@@ -87,6 +87,7 @@ def printCidLists(cidList):
         ])
 
     print(tabulate(rows, headers, tablefmt="fancy_grid"))
+
 
 def printFilterDetails(filter):
     if filter['enabled']:
@@ -103,8 +104,12 @@ def printFilterDetails(filter):
 
     printCidLists(filter['cids'])
 
+
 def setFilterStatus(filter: str, status: bool):
     filterDetails = getFilterDetails(filter)
+
+    typer.secho(filterDetails)
+    exit
 
     allowed = False
     for providerFilter in filterDetails['provider_Filters']:
@@ -115,12 +120,14 @@ def setFilterStatus(filter: str, status: bool):
 
     if allowed:
         params = {'active': status}
-        response = requests.put(f"{host}/provider-filter/{state['providerId']}/{filterDetails['id']}", json=params, auth=BearerAuth(state['accessToken']))
+        response = requests.put(f"{host}/provider-filter/{filterDetails['id']}", json=params,
+                                auth=BearerAuth(state['accessToken']))
         if response.status_code == 200:
             typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
         else:
             typer.secho("Error: ", bg=typer.colors.RED)
             typer.secho(response.json())
+
 
 @app.command()
 def list(search: str = ""):
@@ -133,78 +140,77 @@ def list(search: str = ""):
 
     printFilterLists(filters['filters'])
 
+
 @app.command()
 def details(filter: str):
     filterDetails = getFilterDetails(filter)
     printFilterDetails(filterDetails)
 
+
 @app.command()
 def enable(filter: str):
     setFilterStatus(filter, True)
+
 
 @app.command()
 def disable(filter: str):
     setFilterStatus(filter, False)
 
+
 @app.command()
 def edit(
-    filter: str,
-    name: str = None,
-    description: str = None,
-    override: int = typer.Option(None, callback=parseOverrideCallback),
-    visibility: str = typer.Option(None, callback=parseVisibilityCallback)
+        filter_list: str,
+        name: str = None,
+        description: str = None,
+        visibility: str = typer.Option(None, callback=parseVisibilityCallback)
 ):
-    filter = getFilterDetails(filter)
+    filter_json = getFilterDetails(filter_list)
+
+    if name is None and description is None and visibility is None:
+        return typer.secho("No changes were submitted.")
+
     if name is not None:
-        filter['name'] = name
+        filter_json['name'] = name
 
     if description is not None:
-        filter['description'] = description
-
-    if override is not None:
-        filter['override'] = (override == 1)
+        filter_json['description'] = description
 
     if visibility is not None:
-        filter['visibility'] = visibility
+        filter_json['visibility'] = visibility
 
-    response = requests.put(f"{host}/filter/{filter['id']}", json=filter, auth=BearerAuth(state['accessToken']))
+    response = requests.put(f"{host}/filter/{filter_json['id']}", json=filter_json, auth=BearerAuth(state['accessToken']))
     if response.status_code == 200:
         typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
     else:
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
 
+
 @app.command()
 def add(
-    name: str = typer.Option(..., prompt=True),
-    description: str = typer.Option(..., prompt=True),
-    visibility: str = typer.Option(..., prompt="What visibility should the filter have? [Private/Public/Shareable]", callback=parseVisibilityCallback),
-    override: int = typer.Option(..., prompt="Is this an override filter? [0/1]", callback=parseOverrideCallback),
+        name: str = typer.Option(..., prompt=True),
+        description: str = typer.Option(..., prompt=True),
+        visibility: str = typer.Option(..., prompt="What visibility should the filter have? [Private/Public/Shareable]"),
 ):
-    filter = {
+    parsed_visibility = parseVisibilityCallback(visibility)
+
+    filter_json = {
         'cids': [],
         'enabled': True,
         'name': name,
         'description': description,
-        'visibility': visibility,
-        'providerId': state['providerId'],
+        'visibility': parsed_visibility,
     }
 
-    response = requests.post(f"{host}/filter", json=filter, auth=BearerAuth(state['accessToken']))
+    response = requests.post(f"{host}/filter", json=filter_json, auth=BearerAuth(state['accessToken']))
 
-    filter = response.json()
+    filter_list = response.json()
 
-    providerFilter = {
-        'active': True,
-        'filterId': filter['id'],
-        'providerId': state['providerId']
-    }
-    response = requests.post(f"{host}/provider-filter", json=providerFilter, auth=BearerAuth(state['accessToken']))
     if response.status_code == 200:
         typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
-        filter['provider_Filters'] = []
-        filter['cids'] = []
-        printFilterDetails(filter)
+        filter_list['provider_Filters'] = []
+        filter_list['cids'] = []
+        printFilterDetails(filter_list)
     else:
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
@@ -226,11 +232,12 @@ def add_cid(filter: str, cid: str, refUrl: str = ""):
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
 
+
 @app.command(name="remove-cid")
 def remove_cid(filter: str, cid: str):
-    filter = getFilterDetails(filter)
+    filter_json = getFilterDetails(filter)
     id = None
-    for cidObj in filter['cids']:
+    for cidObj in filter_json['cids']:
         if cidObj['cid'] == cid:
             id = cidObj['id']
             break
@@ -238,12 +245,16 @@ def remove_cid(filter: str, cid: str):
     if id is None:
         raise typer.Exit("CID not found on provided filter.")
 
-    response = requests.delete(f"{host}/cid/{id}", auth=BearerAuth(state['accessToken']))
+    response = requests.post(f"{host}/filter/remove-cids-from-filter", json={
+        "filterId": filter_json['id'],
+        "cids": [id]
+    }, auth=BearerAuth(state['accessToken']))
     if response.status_code == 200:
         typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
     else:
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
+
 
 @app.command()
 def delete(filter: str, confirm: bool = False):
@@ -264,12 +275,13 @@ def delete(filter: str, confirm: bool = False):
     if not confirm:
         raise typer.Exit("Aborting.");
 
-    response = requests.delete(f"{host}/provider-filter/{state['providerId']}/{filter['id']}", auth=BearerAuth(state['accessToken']))
+    response = requests.delete(f"{host}/provider-filter/{filter['id']}", auth=BearerAuth(state['accessToken']))
     if response.status_code == 200:
         typer.secho("Deleted.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
     else:
         typer.secho("Error: ", bg=typer.colors.RED)
         typer.secho(response.json())
+
 
 @app.callback()
 def getAuthData():
@@ -278,6 +290,7 @@ def getAuthData():
 
     if state['accessToken'] is None or state['providerId'] is None:
         raise typer.Exit("Not logged in.")
+
 
 if __name__ == "__main__":
     app()
