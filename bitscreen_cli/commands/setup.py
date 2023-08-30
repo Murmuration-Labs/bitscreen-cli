@@ -67,7 +67,9 @@ def install(
     with open(fullPath, "w") as f:
         f.write("export BITSCREEN_SOCKET_PORT=5555\n");
         f.write("export BITSCREEN_BACKEND_HOST=https://backend.bitscreen.co\n");
-        f.write("export BITSCREEN_CIDS_FILE=~/.murmuration/bitscreen\n");
+        f.write("export FILECOIN_CIDS_FILE=~/.murmuration/bitscreen\n");
+        f.write("export IPFS_CIDS_FILE=~/.config/ipfs/denylists/bitscreen.deny\n");
+
         if privateKey:
             f.write(f"export BITSCREEN_PROVIDER_KEY={privateKey}\n");
         if seedPhrase:

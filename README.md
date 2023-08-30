@@ -145,14 +145,14 @@ $ bitscreen-cli cid [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `list`
+* `list_blocked`
 
-### `bitscreen-cli cid list`
+### `bitscreen-cli cid list_blocked`
 
 **Usage**:
 
 ```console
-$ bitscreen-cli cid list [OPTIONS]
+$ bitscreen-cli cid list_blocked [OPTIONS]
 ```
 
 **Options**:
@@ -205,7 +205,7 @@ $ bitscreen-cli directory [OPTIONS] COMMAND [ARGS]...
 * `details`
 * `discard`
 * `import`
-* `list`
+* `list_blocked`
 
 ### `bitscreen-cli directory details`
 

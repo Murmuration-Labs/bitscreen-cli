@@ -1,6 +1,8 @@
 import requests
 import typer
 from auth import host, getConfigFromFile, BearerAuth
+import os
+import json
 
 state = {
     'accessToken': None,
@@ -24,7 +26,7 @@ def getCids(download = False):
     return cids
 
 @app.command()
-def list(
+def list_blocked(
     outputFile: str = typer.Option(None, "--outputfile", "-o")
 ):
     if outputFile:
