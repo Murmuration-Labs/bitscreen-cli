@@ -1,8 +1,7 @@
 import typer
-from auth import getConfigFromFile
 from dashing import *
 import requests
-from auth import host, getConfigFromFile, BearerAuth
+from .auth import host, getConfigFromFile, BearerAuth
 
 app = typer.Typer()
 

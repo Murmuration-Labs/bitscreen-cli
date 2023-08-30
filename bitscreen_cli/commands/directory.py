@@ -1,8 +1,8 @@
 import requests
 import typer
 from tabulate import tabulate
-from auth import host, getConfigFromFile, BearerAuth
-from filter import getReadableVisibility
+from .auth import host, getConfigFromFile, BearerAuth
+from .filter import getReadableVisibility
 
 app = typer.Typer()
 

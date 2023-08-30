@@ -1,7 +1,7 @@
 import requests
 import typer
 from tabulate import tabulate
-from auth import host, getConfigFromFile, BearerAuth
+from .auth import host, getConfigFromFile, BearerAuth
 
 VISIBILITY_TYPES = {
     1: 'Private',

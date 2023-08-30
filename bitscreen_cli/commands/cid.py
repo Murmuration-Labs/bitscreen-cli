@@ -1,6 +1,6 @@
 import requests
 import typer
-from auth import host, getConfigFromFile, BearerAuth
+from .auth import host, getConfigFromFile, BearerAuth
 import os
 import json
 

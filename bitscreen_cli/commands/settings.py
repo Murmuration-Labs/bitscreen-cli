@@ -1,7 +1,7 @@
 import requests
 import typer
 from enum import Enum
-import auth
+from .auth import host, getConfigFile, BearerAuth 
 
 countryCodes = ["AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU", "AT", "AZ", "BS",
                 "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BQ", "BA", "BW", "BV", "BR", "IO", "BN",
@@ -18,9 +18,6 @@ countryCodes = ["AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR"
                 "SB", "SO", "ZA", "GS", "SS", "ES", "LK", "SD", "SR", "SJ", "SE", "CH", "SY", "TW", "TJ", "TZ", "TH",
                 "TL", "TG", "TK", "TO", "TT", "TN", "TR", "TM", "TC", "TV", "UG", "UA", "AE", "GB", "UM", "US", "UY",
                 "UZ", "VU", "VE", "VN", "VG", "VI", "WF", "EH", "YE", "ZM", "ZW"]
-host = auth.host
-getConfigFromFile = auth.getConfigFromFile
-BearerAuth = auth.BearerAuth
 
 app = typer.Typer()
 
@@ -69,8 +66,6 @@ def setValue(action: Action, value: bool):
 
     config = response.json()
 
-    typer.secho(config);
-
     key = None
     if action is Action.Filtering:
         key = 'bitscreen'
@@ -95,7 +90,6 @@ def setValue(action: Action, value: bool):
         typer.secho("Done.", bg=typer.colors.GREEN, fg=typer.colors.BLACK)
     else:
         typer.secho("Error: ", bg=typer.colors.RED)
-        print(response.json())
 
 
 @app.command()

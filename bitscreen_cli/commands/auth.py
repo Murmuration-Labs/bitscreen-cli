@@ -8,7 +8,7 @@ from py_crypto_hd_wallet import HdWalletFactory, HdWalletCoins, HdWalletSpecs, H
 
 app = typer.Typer()
 
-host = "http://172.30.1.3:3030"
+host = "https://backend.bitscreen.co"
 wallet = None
 privateKey = None
 accessToken = None
@@ -44,9 +44,6 @@ def signMessage(msg):
 
 
 def authenticate(signature):
-    typer.echo('asd')
-    typer.secho(signature)
-    typer.echo('asd')
     global provider, accessToken
     payload = {'signature': signature}
     response = requests.post(host + '/provider/auth/wallet/' + wallet, json=payload)
@@ -101,7 +98,6 @@ def login(fromSeed: bool = False):
         typer.secho("Created bitscreen config directory.")
 
     configFile = getConfigFile()
-    typer.secho(os.path.isfile(configFile))
     if not os.path.isfile(configFile):
         with open(configFile, 'w') as fp:
             fp.write('{}')
