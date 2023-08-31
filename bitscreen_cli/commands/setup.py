@@ -69,6 +69,7 @@ def install(
         f.write("export BITSCREEN_BACKEND_HOST=https://backend.bitscreen.co\n");
         f.write("export FILECOIN_CIDS_FILE=~/.murmuration/bitscreen\n");
         f.write("export IPFS_CIDS_FILE=~/.config/ipfs/denylists/bitscreen.deny\n");
+        f.write("export LOTUS_BLOCK_FROM_FILE=0\n");
 
         if privateKey:
             f.write(f"export BITSCREEN_PROVIDER_KEY={privateKey}\n");
